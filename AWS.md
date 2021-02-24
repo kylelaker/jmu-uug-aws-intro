@@ -50,7 +50,17 @@ I use AWS a lot but far from an expert
 
 ---
 
-## Play in the Console
+## Follow Along
+
+https://github.com/kylelaker/jmu-uug-aws-intro
+
+Presentation: `AWS.md`
+CloudFormation: `basic.yaml`
+
+---
+
+
+## Or Don't
 
 Sign in: https://awsdemo.lakerka.com
 
