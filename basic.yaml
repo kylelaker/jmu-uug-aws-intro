@@ -1,0 +1,171 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  Provisions resoures for a basic AWS demo. Some sample users are created as is an S3 bucket
+  with public _read_ access.
+
+Parameters:
+  DefaultPassword:
+    Description: The default password for the demo IAM users
+    Type: String
+    NoEcho: true
+  BucketName:
+    Description: The name of the demo S3 bucket
+    Type: String
+  UserNamePrefix:
+    Description: The prefix for the demo user names
+    Type: String
+    Default: demo-user
+
+Resources:
+  DemoS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      # Make the bucket public; still need a Bucket Policy to make the objects
+      # themselves public though. THIS IS A REALLY BAD IDEA.
+      AccessControl: PublicRead
+      # Some example tags; these are not used for anything meaningful in this
+      # account.
+      Tags:
+        - Key: Purpose
+          Value: UUG Demo
+        - Key: Writable
+          Value: "true"
+  DemoS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DemoS3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Id: "DemoPolicy"
+        Statement:
+          # Make all objects in the bucket public by default. THIS IS A REALLY BAD IDEA!!
+          - Sid: "PublicReadGetObject"
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub ${DemoS3Bucket.Arn}/*
+
+  DemoUserGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AWSCloudShellFullAccess
+  DemoS3BucketWrite:
+    Type: AWS::IAM::Policy
+    Properties:
+      Groups:
+        - !Ref DemoUserGroup
+      PolicyName: DemoS3BucketWrite
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "DemoBucketObjectFullAccess"
+            Effect: Allow
+            Action: s3:*Object*
+            Resource: !Sub ${DemoS3Bucket.Arn}/*
+
+  # This repetition is unfortunately required since CloudFormation does not permit any form of
+  # looping without Transforms nor does it support YAML anchors.
+  DemoIamUser1:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-1
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser2:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-2
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser3:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-3
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser4:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-4
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser5:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-5
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser6:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-6
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser7:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-7
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser8:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-8
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser9:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-9
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+  DemoIamUser10:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ${UserNamePrefix}-10
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  # Place the newly created users in the group. This must be manually updated for each new
+  # user.
+  UsersInGroup:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref DemoUserGroup
+      Users:
+        - !Ref DemoIamUser1
+        - !Ref DemoIamUser2
+        - !Ref DemoIamUser3
+        - !Ref DemoIamUser4
+        - !Ref DemoIamUser5
+        - !Ref DemoIamUser6
+        - !Ref DemoIamUser7
+        - !Ref DemoIamUser8
+        - !Ref DemoIamUser9
+        - !Ref DemoIamUser10
+
+Outputs:
+  # Make the demo group name and ARN available to other CloudFormation stacks
+  DemoGroupName:
+    Export:
+      Name: !Sub ${AWS::StackName}:DemoGroupName
+    Value: !Ref DemoUserGroup
+  DemoGroupArn:
+    Export:
+      Name: !Sub ${AWS::StackName}:DemoGroupArn
+    Value: !GetAtt DemoUserGroup.Arn
